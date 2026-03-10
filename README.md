@@ -19,9 +19,9 @@ The mapping based approach is recommended when the reads are already aligned to 
 
 1. GRCh38/hg38 [Homo_sapiens_assembly38.fasta.gz](https://github.com/broadinstitute/gatk/tree/master/src/test/resources/large/) (1000 Genomes Project Broad ver. Suitable for UKBioBank) or [GRCh38_full_analysis_set_plus_decoy_hla.fa](ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.fa) (1000 Genomes Project NYGC ver. Suitable for 1KGP NYGC 30x cram)
 
-   Requires `chr21`, `chr17_GL000205v2_random` and `chrUn_GL000195v1`.
+   Requires `chr21`, `chrUn_GL000220v1`, `chr17_GL000205v2_random`, `chr22_KI270733v1_random` and `chrUn_GL000195v1`.
 
-2. GRCh37/hg19 [human_g1k_v37.fasta.gz](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/) (1000 Genomes Project ver)
+2. GRCh37/hg19 [human_g1k_v37.fasta.gz](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/) (1000 Genomes Project ver; experimental)
 
    Requires `chr7_gl000195_random` and `chr17_gl000205_random`.
 
@@ -35,7 +35,7 @@ Read coverage is assessed on the mapped BAM file for the target DJ region and co
 
 The k-mer based approach is reference-free.
 
-This approach is recommended when reads are aligned to hg38 or hg19 _without any decoy sequences_ or are in its raw FASTQ form. A collected set of target k-mers are pre-built to query the k-mer multiplicity of the DJ and is compared against the single / 2-copy copy number estimates inferred from the k-mer multiplicity histogram.
+This approach is recommended when reads are aligned to hg38 or hg19 _without any decoy sequences_ or are in its raw FASTQ form. A collected set of target k-mers are [pre-built](resources/DJtarget.meryl.tar.gz) to query the k-mer multiplicity of the DJ and is compared against the single / 2-copy copy number estimates inferred from the k-mer multiplicity histogram.
 
 ## Change logs
 <details>
@@ -60,6 +60,9 @@ This approach is recommended when reads are aligned to hg38 or hg19 _without any
 * Add BED file for roi on hg19 <br />
 </details>
 
-
+<details>
+<summary>v1.0(2026-03-08)</summary>
+* Finalize hg38 and k-mer mode <br />
+</details>
 
 
