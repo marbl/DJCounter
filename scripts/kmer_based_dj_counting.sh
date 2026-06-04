@@ -54,7 +54,7 @@ else
 	    echo "$input file is empty."
 	    exit 1
 	  fi
-    module load samtools/1.21
+    module load samtools/1.23
     ref=""
     if [[ -z $ref ]] || [[ $ref == "" ]]; then
       echo "No reference provided for BAM/CRAM input. Assuming bam/cram has all the sequences."
@@ -63,9 +63,10 @@ else
     fi
     # mkfifo ${sample}_fq_pipe
     # $samtools fastq -@ ${cpus} $ref $input > ${sample}_fq_pipe &
-    samtools fastq -@ ${cpus} $ref $input | pigz -c - > $tmp/${sample}.fq.gz
+    # samtools fastq -@ ${cpus} $ref $input | pigz -c - > $tmp/${sample}.fq.gz
 	  # meryl count k=31 threads=${cpus} memory=${mem} output ${sample}.k31.meryl ${sample}_fq_pipe || exit -1
-    meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl $tmp/${sample}.fq.gz || exit -1
+    # meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl $tmp/${sample}.fq.gz || exit -1
+    /data/Phillippy2/projects/hprc-assemblies/software-v3/meryl/build/bin/meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl ${input} || exit -1
     #rm ${sample}_fq_pipe
   else
     meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl ${input}

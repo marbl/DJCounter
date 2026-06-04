@@ -1,68 +1,137 @@
-# DJ Counter
+<h1 align="center">🧬 DJCounter</h1>
 
-Count the number of distal junctions (DJ) of the ribosomal DNA (rDNA)
+<p align="center">
+  <em>Estimate the copy number of ribosomal-DNA distal junctions (DJs) from sequencing data.</em>
+</p>
 
-## Purpose
-This repository provides tools for estimating the copy number of the DJs in a genome from sequencing reads.
+---
 
-## Principle
-Copy number of DJs are determined by 1) the sequencing coverage in mapped reads or 2) k-mer multiplicity in raw reads.
+## Overview
 
-## Main workflow
-Copy number of the DJ can be estimated with the following approaches:
-1. [Mapping based approach](/scripts/mapping_based.md)
-2. [K-mer based, reference-free approach](/scripts/kmer_based.md)
+`DJCounter` estimates how many copies of the ribosomal-DNA **distal junction (DJ)** are present in a human genome from short-read sequencing data. It supports two complementary modes:
 
-### Mapping based estimates
+| Mode | Input | When to use |
+| ---- | ----- | ----------- |
+| **Mapping-based** | aligned BAM/CRAM | reads already aligned to GRCh38 / GRCh37 / CHM13|
+| **K-mer based** *(reference-free)* | raw FASTQ (or BAM/CRAM) | raw reads or BAM file |
 
-The mapping based approach is recommended when the reads are already aligned to one of the following references.
+- Mapping-based: DJ copy number is derived from sequencing **coverage** in the target region, normalized to autosomal background.
+- K-mer based: DJ copy number is derived from the **k-mer multiplicity** of a curated DJ-specific 31-mer set, normalized to the 2-copy peak in the read k-mer histogram.
 
-1. GRCh38/hg38 [Homo_sapiens_assembly38.fasta.gz](https://github.com/broadinstitute/gatk/tree/master/src/test/resources/large/) (1000 Genomes Project Broad ver. Suitable for UKBioBank) or [GRCh38_full_analysis_set_plus_decoy_hla.fa](ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.fa) (1000 Genomes Project NYGC ver. Suitable for 1KGP NYGC 30x cram)
+Typical human samples yield ~10 DJ copies and Robertsonian samples typically show ~8.
 
-   Requires `chr21`, `chrUn_GL000220v1`, `chr17_GL000205v2_random`, `chr22_KI270733v1_random` and `chrUn_GL000195v1`.
+## Quick start
 
-2. GRCh37/hg19 [human_g1k_v37.fasta.gz](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/) (1000 Genomes Project ver; experimental)
+### 1. Mapping-based
 
-   Requires `chr7_gl000195_random` and `chr17_gl000205_random`.
+Suitable when your BAM/CRAM is aligned to one of the supported references (see [References](#supported-references)).
 
-3. T2T-CHM13/hs1 (Will be updated soon)
+```bash
+scripts/calCounts.sh \
+    --sample  Sample01 \
+    --bam     /path/to/sample.bam \
+    --ref     GRCh38 \
+    --threads 10
+```
 
-For hg38 or hg19, check with `samtools` to confirm the sequence exists in the header; such as using `samtools view -H in.bam | grep chr17_GL000205v2_random`.
+Output: `$outdir/$sample.$ref.tg.<filter>.<gap>.txt`
 
-Read coverage is assessed on the mapped BAM file for the target DJ region and compared against the background coverage collected from autosomes.
+```
+sample      ref     roi      DJ_count
+Sample01    GRCh38  DJ_filt  11.01608
+```
 
-### K-mer based approach
+📘 Details: [scripts/mapping_based.md](scripts/mapping_based.md)
 
-The k-mer based approach is reference-free.
+### 2. K-mer based (reference-free)
 
-This approach is recommended when reads are aligned to hg38 or hg19 _without any decoy sequences_ or are in its raw FASTQ form. A collected set of target k-mers are [pre-built](resources/DJtarget.meryl.tar.gz) to query the k-mer multiplicity of the DJ and is compared against the single / 2-copy copy number estimates inferred from the k-mer multiplicity histogram.
+```bash
+# 1. Prepare the DJ target k-mer database (one-time)
+cd resources
+pigz -cd DJtarget.meryl.tar.gz | tar -xf -
 
-## Change logs
-<details>
-<summary>v0.1(2024-07-17)</summary>
-* first commit
-</details>
+# 2. Run on a sample
+scripts/kmer_based_dj_counting.sh Sample01 /path/to/reads.fq.gz
+# or paired-end:
+scripts/kmer_based_dj_counting.sh Sample01 reads_1.fq.gz,reads_2.fq.gz
+# or BAM/CRAM:
+scripts/kmer_based_dj_counting.sh Sample01 sample.bam GRCh38
+```
 
-<details>
-<summary>v0.2(2024-07-25)</summary>
-* Changing the background coverage estimation methods from samtools idxstats to samtools coverage.<br />
-* Removing the step of saving temporary files; instead, we assign everything to variables.
-</details>
+Plot the distribution across many samples:
 
-<details>
-<summary>v0.2.1(2024-07-29)</summary>
-* Add background and fragment size to the output file. <br />
-* Fix the command line used for calculating the background to ensure it works correctly.
-</details>
+```bash
+cat DJcounts/*_DJ_count.txt > DJ_counts.txt
+Rscript scripts/plot_dist.R
+```
 
-<details>
-<summary>v0.2.2(2025-11-26)</summary>
-* Add BED file for roi on hg19 <br />
-</details>
+📘 Details: [scripts/kmer_based.md](scripts/kmer_based.md)
 
-<details>
-<summary>v1.0(2026-03-08)</summary>
-* Finalize hg38 and k-mer mode <br />
-</details>
+## How it works
 
+### Mapping-based
 
+```
+DJ_count = (2 × tgCount) / (covLen × bgCov)
+
+  tgCount : reads aligned to the DJ target regions
+  covLen  : DJ length on CHM13 used to normalize tgCount
+  bgCov   : background autosomal coverage
+```
+
+### K-mer based
+
+1. Count all 31-mers in the input (`meryl count k=31`).
+2. Intersect with the curated `DJtarget.meryl` set (52,227 distinct k-mers; 26,140,589 occurrences) and read the median frequency from its histogram.
+3. Use Merqury's `kmerHistToPloidyDepth.jar` to estimate the 2-copy peak from the read k-mer histogram.
+4. `DJ_count ≈ DJ_median / (peak2 / 2)`.
+
+## Supported references
+
+| Build       | Required contigs                                                                                          | Notes |
+| ----------- | --------------------------------------------------------------------------------------------------------- | ----- |
+| **GRCh38 / hg38** | `chr21`, `chrUn_GL000220v1`, `chr17_GL000205v2_random`, `chr22_KI270733v1_random`, `chrUn_GL000195v1` | [Broad ver.](https://github.com/broadinstitute/gatk/tree/master/src/test/resources/large/) (UK Biobank) or [1KGP NYGC ver.](ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.fa) |
+| **GRCh37 / hg19** *(experimental)* | `chr7_gl000195_random`, `chr17_gl000205_random` | [1KGP ver.](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/) |
+| **T2T-CHM13 / hs1** | `chr13`, `chr14`, `chr15`, `chr21`, `chr22` | |
+
+Verify your BAM contains the required contigs:
+
+```bash
+samtools view -H sample.bam | grep chr17_GL000205v2_random
+```
+
+## Repository layout
+
+```
+DJCounter/
+├── scripts/         # Pipeline scripts and per-mode docs
+│   ├── calCounts.sh
+│   ├── kmer_based_dj_counting.sh
+│   ├── mapping_based.md
+│   └── kmer_based.md
+├── resources/       # Pre-built DJ k-mer database & references
+│   └── DJtarget.meryl.tar.gz
+├── roi/             # Target BED files
+│   ├── GRCh38/
+│   ├── hg19/
+│   └── CHM13/
+└── paper/           # jupyter notebook for generating plots
+```
+
+## Dependencies
+
+- [`samtools`](https://www.htslib.org/) ≥ 1.21 — mapping-based mode and BAM/CRAM input
+- [`meryl`](https://github.com/marbl/meryl) ≥ 1.4.1 — k-mer mode
+- [`merqury`](https://github.com/marbl/merqury) — only `eval/kmerHistToPloidyDepth.jar`; set `$MERQURY` to the clone path
+- Java runtime (for the Merqury jar)
+- `pigz`, `R` (for plotting)
+
+## Changelog
+
+| Version | Date | Changes |
+| ------- | ---- | ------- |
+| **v1.0** | 2026-03-08 | Finalized hg38 and k-mer modes |
+| v0.2.2  | 2025-11-26 | Added BED file for ROI on hg19 |
+| v0.2.1  | 2024-07-29 | Output background and fragment size; fixed background command |
+| v0.2    | 2024-07-25 | `samtools idxstats` → `samtools coverage` for background; removed temp files |
+| v0.1    | 2024-07-17 | First commit |
