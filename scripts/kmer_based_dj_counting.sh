@@ -3,14 +3,16 @@
 sample=$1
 input=$2
 ref=$3
-DJ_TARGET=$tools/DJCounter/resources/DJtarget.meryl
+# DJ_TARGET=$tools/DJCounter/resources/DJtarget.meryl
+# DJ_TARGET="$(realpath "$(dirname "${BASH_SOURCE[0]}")/../resources/DJtarget.meryl")"
+DJ_TARGET=$(dirname $(realpath $0))/../resources/DJtarget.meryl
 
 if [[ -z $sample || -z $input ]]; then
   echo "Usage: kmer_based_dj_counting.sh <sample_name> <input.bam|input.cram|input.fq.gz> [ref]"
   echo "  sample_name: Sample identifier"
   echo "  input.bam|input.cram|input.fq.gz: Input sequencing reads in BAM or FASTQ format (gz or not)."
   echo "  For paired-end reads, provide files as a comma separated list e.g. \"input1.fq.gz,input2.fq.gz\""
-  echo "  ref: (Optional) Reference genome used in the bam/cram input file."
+  echo "  ref: (Optional) Reference genome used in the bam/cram input file. hg38 for \$tools/DJCounter/resources/GRCh38_full_analysis_set_plus_decoy_hla.fa."
   exit 1
 fi
 
@@ -63,11 +65,12 @@ else
     fi
     # mkfifo ${sample}_fq_pipe
     # $samtools fastq -@ ${cpus} $ref $input > ${sample}_fq_pipe &
-    # samtools fastq -@ ${cpus} $ref $input | pigz -c - > $tmp/${sample}.fq.gz
 	  # meryl count k=31 threads=${cpus} memory=${mem} output ${sample}.k31.meryl ${sample}_fq_pipe || exit -1
-    # meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl $tmp/${sample}.fq.gz || exit -1
-    /data/Phillippy2/projects/hprc-assemblies/software-v3/meryl/build/bin/meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl ${input} || exit -1
-    #rm ${sample}_fq_pipe
+    # rm ${sample}_fq_pipe
+    #samtools fastq -@ ${cpus} $ref $input | pigz -c - > $tmp/${sample}.fq.gz
+    #meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl $tmp/${sample}.fq.gz || exit -1
+    # /data/Phillippy2/projects/hprc-assemblies/software-v3/meryl/build/bin/meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl ${input} || exit -1
+    meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl ${input} || exit -1
   else
     meryl count k=31 threads=${cpus} memory=${mem} output $tmp/${sample}.k31.meryl ${input}
   fi

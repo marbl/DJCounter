@@ -15,12 +15,16 @@
 # %%
 import statsmodels.api as sm
 import os
+import sys
 import pickle
 import pandas as pd
 import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import argparse
+
+if sys.version_info < (3, 6):
+    raise RuntimeError("predict_DJ_cn.py requires Python 3.6+. Please run with `python3`.")
 
 # %%
 script_path = os.path.abspath(__file__)
@@ -40,7 +44,7 @@ parser.add_argument("--plt_prefix", type=str,
                     help="Plot prefix for output files")
 
 parser.add_argument("--model", type=str,
-                    default=f"{script_dir}/GRCh38_fast_accurate_to_CHM13.pkl",
+                    default="{}/GRCh38_fast_accurate_to_CHM13.pkl".format(script_dir),
                     help="Model file for prediction")
 
 args = parser.parse_args()
@@ -59,7 +63,7 @@ with open(model, "rb") as f:
 df = pd.DataFrame({'DJ_GRCh38': [dj_count]})
 X_pred = sm.add_constant(df[['DJ_GRCh38']], has_constant='add')
 df['DJ_predicted'] = model.predict(X_pred)
-print(f"Predicted DJ for GRCh38 with DJ count {dj_count}: {df['DJ_predicted'].iloc[0]:.2f}")
+print("Predicted DJ for GRCh38 with DJ count {}: {:.2f}".format(dj_count, df['DJ_predicted'].iloc[0]))
 
 
 # %%
@@ -121,7 +125,7 @@ plt.plot(x, gmm)
 plt.xlabel("x")
 plt.ylabel("Density")
 plt.title("Gaussian Mixture Model")
-plt.savefig(f"{plt_prefix}.pdf", dpi=300)
+plt.savefig("{}.pdf".format(plt_prefix), dpi=300)
 plt.show()
 
 # %%
@@ -147,7 +151,12 @@ plt.plot(x, gmm)
 plt.xlabel("x")
 plt.ylabel("Density")
 plt.title("Gaussian Mixture Model")
-plt.savefig(f"{plt_prefix}.zoomin.pdf", dpi=300)
+plt.savefig("{}.zoomin.pdf".format(plt_prefix), dpi=300)
 plt.show()
 
+
+df.to_csv("{}.DJ_prediction.tsv".format(plt_prefix), sep = '\t', index=False, header = True)
+
+
 # %%
+
