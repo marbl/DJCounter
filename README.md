@@ -55,7 +55,7 @@ scripts/kmer_based_dj_counting.sh Sample01 /path/to/reads.fq.gz
 # or paired-end:
 scripts/kmer_based_dj_counting.sh Sample01 reads_1.fq.gz,reads_2.fq.gz
 # or BAM/CRAM:
-scripts/kmer_based_dj_counting.sh Sample01 sample.bam GRCh38
+scripts/kmer_based_dj_counting.sh Sample01 sample.bam
 ```
 
 Plot the distribution across many samples:
@@ -86,7 +86,7 @@ DJ_count = (2 × tgCount) / (covLen × bgCov)
 3. Use Merqury's `kmerHistToPloidyDepth.jar` to estimate the 2-copy peak from the read k-mer histogram.
 4. `DJ_count ≈ DJ_median / (peak2 / 2)`.
 
-## Supported references
+## Supported references for mapping-based counting
 
 | Build       | Required contigs                                                                                          | Notes |
 | ----------- | --------------------------------------------------------------------------------------------------------- | ----- |
@@ -120,8 +120,8 @@ DJCounter/
 
 ## Dependencies
 
-- [`samtools`](https://www.htslib.org/) ≥ 1.21 — mapping-based mode and BAM/CRAM input
-- [`meryl`](https://github.com/marbl/meryl) ≥ 1.4.1 — k-mer mode
+- [`samtools`](https://www.htslib.org/) ≥ 1.21 — mapping-based mode
+- [`meryl`](https://github.com/marbl/meryl) ≥ 1.4.2 — k-mer mode
 - [`merqury`](https://github.com/marbl/merqury) — only `eval/kmerHistToPloidyDepth.jar`; set `$MERQURY` to the clone path
 - Java runtime (for the Merqury jar)
 - `pigz`, `R` (for plotting)

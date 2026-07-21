@@ -1,9 +1,8 @@
 # K-mer based approach
 
 ## Dependencies
-* [Meryl v1.4.1](https://github.com/marbl/meryl): Recommended to use the pre-built binary release versions. Append the path to the binary `meryl` under $PATH environment variable.
+* [Meryl v1.4.2](https://github.com/marbl/meryl): Recommended to use the pre-built binary release versions. Append the path to the binary `meryl` under $PATH environment variable.
 * [Merqury](https://github.com/marbl/merqury): We are only using [kmerHistToPloidyDepth.jar](https://github.com/marbl/merqury/blob/master/eval/kmerHistToPloidyDepth.jar). Clone this repository under `$tools` and set the environment variable `MERQURY=/path/to/tools/Merqury`. Nothing needs to be installed except for a java runtime engine, which comes with most OSs.
-* Optional: [Samtools v1.21+](https://github.com/samtools/samtools) if the input file is in BAM/CRAM format
 
 ## Prepare DJ target k-mer db
 Unzip and untar `DJtarget.meryl.tar.gz` under `resources`:
@@ -30,11 +29,10 @@ Number of 31-mers that are:
 Run `kmer_based_dj_counting.sh`
 ```sh
 ./kmer_based_dj_counting.sh
-Usage: kmer_based_dj_counting.sh <sample_name> <input.bam|input.cram|input.fq.gz> [ref]
+Usage: kmer_based_dj_counting.sh <sample_name> <input.bam|input.cram|input.fq.gz>
   sample_name: Sample identifier
   input.bam|input.cram|input.fq.gz: Input sequencing reads in BAM or FASTQ format (gz or not).
   For paired-end reads, provide files as a comma separated list e.g. "input1.fq.gz,input2.fq.gz"
-  ref: (Optional) Reference genome used in the bam/cram input file.
 ```
 ## Plot results
 Here is a simple script to gather results and plot the distribution.
@@ -50,7 +48,8 @@ Rscript $tools/DJCounter/scripts/plot_dist.R
 
 This step counts all 31-mers in the sequence.
 
-Note meryl accepts `${input}` in FASTA or FASTQ format. Retrieve FASTQ files back from BAM/CRAM file if needed.
+Note meryl count in v1.4.2 accepts `${input}` in FASTA / FASTQ / BAM / CRAM format.
+Prior meryl versions only accepts FASTA / FASTQ formats, convert them if needed.
 
 ```sh
 meryl count k=31 threads=${cpus} memory=${mem} output ${sample}.k31.meryl ${input}
