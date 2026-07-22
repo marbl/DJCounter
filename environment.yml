@@ -1,0 +1,32 @@
+# DJCounter — conda environment
+# ----------------------------------------------------------------------------
+# Quick start:
+#   conda env create -f environment.yml   # or:  mamba env create -f environment.yml
+#   conda activate djcounter
+#   scripts/kmer_based_dj_counting.sh Sample01 reads.fq.gz
+#
+# The `merqury` package sets $MERQURY on activation; the k-mer script also
+# auto-detects it from $CONDA_PREFIX/share/merqury as a fallback.
+# ----------------------------------------------------------------------------
+name: djcounter
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  # Core (mapping-based mode)
+  - samtools>=1.21
+  - bc
+  # Core (k-mer mode)
+  - meryl>=1.4.2
+  - merqury
+  - openjdk           # headless JRE for the merqury jar
+  # Optional: plotting
+  - r-base
+  - r-ggplot2
+  # Optional: predict_DJ_cn.py
+  - python>=3.9
+  - statsmodels
+  - pandas
+  - numpy
+  - scipy
+  - matplotlib

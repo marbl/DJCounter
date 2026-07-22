@@ -1,16 +1,53 @@
-#!/bin/sh
+#!/usr/bin/env bash
+# Script uses bash-only features ([[ ]], BASH_SOURCE), so require bash explicitly.
 
 sample=$1
 input=$2
-# DJ_TARGET=$tools/DJCounter/resources/DJtarget.meryl
-# DJ_TARGET="$(realpath "$(dirname "${BASH_SOURCE[0]}")/../resources/DJtarget.meryl")"
-DJ_TARGET=$(dirname $(realpath $0))/../resources/DJtarget.meryl
 
 if [[ -z $sample || -z $input ]]; then
   echo "Usage: kmer_based_dj_counting.sh <sample_name> <input.bam|input.cram|input.fq.gz>"
   echo "  sample_name: Sample identifier"
   echo "  input.bam|input.cram|input.fq.gz: Input sequencing reads in BAM or FASTQ format (gz or not)."
   echo "  For paired-end reads, provide files as a comma separated list e.g. \"input1.fq.gz,input2.fq.gz\""
+  exit 1
+fi
+
+# Locate the DJ target k-mer database.
+# 1) Sibling to the script (source checkout layout: scripts/../resources/...).
+# 2) Conda package data dir (bioconda layout: $CONDA_PREFIX/share/djcounter/resources/...).
+# 3) Environment override: $DJ_TARGET already set by the caller.
+if [[ -z "$DJ_TARGET" ]]; then
+  _script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+  for _cand in \
+      "$_script_dir/../resources/DJtarget.meryl" \
+      "${CONDA_PREFIX:-}/share/djcounter/resources/DJtarget.meryl"; do
+    if [[ -d "$_cand" ]]; then
+      DJ_TARGET="$_cand"
+      break
+    fi
+  done
+fi
+if [[ ! -d "$DJ_TARGET" ]]; then
+  echo "ERROR: cannot locate DJtarget.meryl. Set \$DJ_TARGET or unpack resources/DJtarget.meryl.tar.gz." >&2
+  exit 1
+fi
+
+# Locate the Merqury kmerHistToPloidyDepth.jar.
+# 1) Explicit $MERQURY (matches historical usage).
+# 2) Bioconda merqury layout: $CONDA_PREFIX/share/merqury.
+# 3) Sibling of the merqury.sh entry point on $PATH.
+if [[ -z "$MERQURY" || ! -f "$MERQURY/eval/kmerHistToPloidyDepth.jar" ]]; then
+  for _cand in \
+      "${CONDA_PREFIX:-}/share/merqury" \
+      "$(dirname "$(command -v merqury.sh 2>/dev/null)" 2>/dev/null)/../share/merqury"; do
+    if [[ -f "$_cand/eval/kmerHistToPloidyDepth.jar" ]]; then
+      MERQURY="$_cand"
+      break
+    fi
+  done
+fi
+if [[ -z "$MERQURY" || ! -f "$MERQURY/eval/kmerHistToPloidyDepth.jar" ]]; then
+  echo "ERROR: cannot locate kmerHistToPloidyDepth.jar. Set \$MERQURY to your merqury clone or 'conda install -c bioconda merqury'." >&2
   exit 1
 fi
 

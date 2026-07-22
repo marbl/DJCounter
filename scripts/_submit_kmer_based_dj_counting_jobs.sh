@@ -46,7 +46,7 @@ args="$args"
 partition=quick
 walltime=4:00:00
 path=`pwd`
-local="--gres=lscratch:300" # increase for higher cov. ONT data. 300-1200
+local="--gres=lscratch:100" # increase for higher cov. ONT data. 300-1200
 
 mkdir -p logs
 log=logs/$name.%A_%a.log

@@ -2,7 +2,6 @@
 # if module could be used, load the required modules
 if command -v module &> /dev/null; then
     ml samtools
-    ml bedtools
 fi
 
 set -e 

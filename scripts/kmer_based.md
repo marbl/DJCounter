@@ -9,8 +9,7 @@ Unzip and untar `DJtarget.meryl.tar.gz` under `resources`:
 
 ```sh
 cd ../resources
-pigz -cd DJtarget.meryl.tar.gz > DJtarget.meryl.tar
-tar -xf DJtarget.meryl.tar
+tar -xzf resources/DJtarget.meryl.tar.gz
 ```
 
 Check `DJtarget.meryl` matches the following stats:
