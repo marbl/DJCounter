@@ -49,12 +49,12 @@ mamba install -c bioconda -c conda-forge djcounter
 ```bash
 # Docker
 docker run --rm -v "$PWD":/data quay.io/biocontainers/djcounter:1.1--<build> \
-    djcounter-kmer Sample01 /data/reads.fq.gz
+    djcounter-kmer -sample Sample01 -input /data/reads.fq.gz
 
 # Singularity / Apptainer
 singularity exec \
     https://depot.galaxyproject.org/singularity/djcounter:1.1--<build> \
-    djcounter-kmer Sample01 reads.fq.gz
+    djcounter-kmer -sample Sample01 -input reads.fq.gz
 ```
 
 Replace `<build>` with the tag shown on [quay.io/biocontainers/djcounter](https://quay.io/repository/biocontainers/djcounter?tab=tags).
@@ -168,14 +168,19 @@ DJ_count = (2 × tgCount) / (covLen × bgCov)
 1. Count all 31-mers in the input (`meryl count k=31`).
 2. Intersect with the curated `DJtarget.meryl` set (52,227 distinct k-mers; 26,140,589 occurrences) and read the median frequency from its histogram.
 3. Use Merqury's `kmerHistToPloidyDepth.jar` to estimate the 2-copy peak from the read k-mer histogram.
-4. `DJ_count ≈ DJ_median / (peak2 / 2)`.
+
+```
+DJ_count = (2 × tgMult) / bgMult
+
+  tgMult.  : target k-mer multiplicity, median multiplicity of the target DJ k-mers
+  bgMult.  : background k-mer multiplicity, estimated for 2-copy peak
+```
 
 ## Supported references for mapping-based counting
 
-| Build       | Required contigs                                                                                          | Notes |
-| ----------- | --------------------------------------------------------------------------------------------------------- | ----- |
+| Build       | Required sequences | Notes |
+| ----------- | ------------------ | ----- |
 | **GRCh38 / hg38** | `chr21`, `chrUn_GL000220v1`, `chr17_GL000205v2_random`, `chr22_KI270733v1_random`, `chrUn_GL000195v1` | [Broad ver.](https://github.com/broadinstitute/gatk/tree/master/src/test/resources/large/) (UK Biobank) or [1KGP NYGC ver.](ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.fa) |
-| **GRCh37 / hg19** *(experimental)* | `chr7_gl000195_random`, `chr17_gl000205_random` | [1KGP ver.](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/) |
 | **T2T-CHM13 / hs1** | `chr13`, `chr14`, `chr15`, `chr21`, `chr22` | |
 
 Verify your BAM contains the required contigs:

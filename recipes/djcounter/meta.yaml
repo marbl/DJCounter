@@ -25,7 +25,6 @@ requirements:
     - sed
     - bc
     - samtools >=1.21
-    - bedtools
     - meryl >=1.4.2
     - merqury
     - openjdk
@@ -44,8 +43,7 @@ test:
 
 about:
   home: https://github.com/marbl/DJCounter
-  license: Public Domain
-  license_family: PUBLIC-DOMAIN
+  license: LicenseRef-US-Government-Public-Domain
   license_file: LICENSE
   summary: "Estimate copy number of ribosomal-DNA distal junctions (DJs) from sequencing data."
   description: |
@@ -60,5 +58,5 @@ about:
 
 extra:
   recipe-maintainers:
-    - @jjuhyunkim
-    - @arangrhie
+    - jjuhyunkim
+    - arangrhie

@@ -14,6 +14,14 @@ while [[ $# -gt 0 ]]; do
             tmp="$2"
             shift 2
             ;;
+        -mem)
+            mem="$2"
+            shift 2
+            ;;
+        -cpus)
+            cpus="$2"
+            shift 2
+            ;;
         *)
             echo "Unknown option: $1"
             exit 1
@@ -21,11 +29,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z $sample || -z $input ]]; then
-  echo "Usage: kmer_based_dj_counting.sh -sample <sample_name> -input <input.bam|input.cram|input.fq.gz> -tmp <tmp_dir>"
+  echo "Usage: kmer_based_dj_counting.sh -sample <sample_name> -input <input.bam|input.cram|input.fq.gz> -tmp <tmp_dir> -mem <mem_in_GB> -cpus <num_cpus>"
   echo "  sample_name: Sample identifier"
   echo "  input.bam|input.cram|input.fq.gz: Input sequencing reads in BAM or FASTQ format (gz or not)."
   echo "  For paired-end reads, provide files as a comma separated list e.g. \"input1.fq.gz,input2.fq.gz\""
   echo "  tmp_dir: Temporary directory for intermediate files. DEFAULT: /lscratch/\$SLURM_JOB_ID or /tmp"
+  echo "  mem_in_GB: Memory to use in GB. DEFAULT: 48 or derived from SLURM_MEM_PER_NODE"
+  echo "  num_cpus: Number of CPUs to use. DEFAULT: 24 or derived from SLURM_CPUS_PER_TASK"
   exit 1
 fi
 
@@ -68,16 +78,21 @@ if [[ -z "$MERQURY" || ! -f "$MERQURY/eval/kmerHistToPloidyDepth.jar" ]]; then
   exit 1
 fi
 
-cpus=$SLURM_CPUS_PER_TASK
-if [ -z "$cpus" ]; then
-  cpus=24
+if [[ -z "$cpus" ]]; then
+  if [[ ! -z $SLURM_CPUS_PER_TASK ]]; then
+    cpus=$SLURM_CPUS_PER_TASK
+  else
+    cpus=24
+  fi
 fi
 
-if [[ -z $SLURM_MEM_PER_NODE ]]; then
-  mem=48
-else
+if [[ -z $mem ]]; then
+  if [[ ! -z $SLURM_MEM_PER_NODE ]]; then
   # Convert MB to GB
-  mem=$(((SLURM_MEM_PER_NODE/1024)-10))
+    mem=$(((SLURM_MEM_PER_NODE/1024)-10))
+  else
+    mem=48
+  fi
 fi
 
 if [[ -z $tmp ]]; then

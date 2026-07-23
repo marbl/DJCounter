@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Wrapper for the k-mer based DJ counting pipeline.
+#
+# Works in two layouts:
+#   1. Repo clone / environment.yml install:
+#        <repo>/bin/djcounter-kmer  ->  <repo>/scripts/kmer_based_dj_counting.sh
+#   2. Bioconda install:
+#        $CONDA_PREFIX/bin/djcounter-kmer
+#          ->  $CONDA_PREFIX/share/djcounter/scripts/kmer_based_dj_counting.sh
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PREFIX_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+if   [[ -s "$PREFIX_DIR/scripts/kmer_based_dj_counting.sh" ]]; then
+    TARGET="$PREFIX_DIR/scripts/kmer_based_dj_counting.sh"
+elif [[ -s "$PREFIX_DIR/share/djcounter/scripts/kmer_based_dj_counting.sh" ]]; then
+    TARGET="$PREFIX_DIR/share/djcounter/scripts/kmer_based_dj_counting.sh"
+else
+    echo "djcounter-kmer: cannot locate kmer_based_dj_counting.sh relative to $SCRIPT_DIR" >&2
+    exit 1
+fi
+
+exec "$TARGET" "$@"
