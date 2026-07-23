@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# Wrapper for the mapping-based DJ counting pipeline (bioconda-installed).
-# Delegates to the real script under $CONDA_PREFIX/share/djcounter/scripts/.
-set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PREFIX_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-exec "$PREFIX_DIR/share/djcounter/scripts/calCounts.sh" "$@"

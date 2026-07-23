@@ -1,14 +1,31 @@
 #!/usr/bin/env bash
-# Script uses bash-only features ([[ ]], BASH_SOURCE), so require bash explicitly.
 
-sample=$1
-input=$2
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -sample)
+            sample="$2"
+            shift 2
+            ;;
+        -input)
+            input="$2"
+            shift 2
+            ;;
+        -tmp)
+            tmp="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+    esac
+done
 
 if [[ -z $sample || -z $input ]]; then
-  echo "Usage: kmer_based_dj_counting.sh <sample_name> <input.bam|input.cram|input.fq.gz>"
+  echo "Usage: kmer_based_dj_counting.sh -sample <sample_name> -input <input.bam|input.cram|input.fq.gz> -tmp <tmp_dir>"
   echo "  sample_name: Sample identifier"
   echo "  input.bam|input.cram|input.fq.gz: Input sequencing reads in BAM or FASTQ format (gz or not)."
   echo "  For paired-end reads, provide files as a comma separated list e.g. \"input1.fq.gz,input2.fq.gz\""
+  echo "  tmp_dir: Temporary directory for intermediate files. DEFAULT: /lscratch/\$SLURM_JOB_ID or /tmp"
   exit 1
 fi
 
@@ -63,10 +80,13 @@ else
   mem=$(((SLURM_MEM_PER_NODE/1024)-10))
 fi
 
-if [[ -z $SLURM_JOB_ID ]]; then
-  tmp="."
-else
-  tmp="/lscratch/$SLURM_JOB_ID"
+if [[ -z $tmp ]]; then
+  if [[ -z $SLURM_JOB_ID ]]; then
+    mkdir -p tmp
+    tmp="tmp"
+  else
+    tmp="/lscratch/$SLURM_JOB_ID"
+  fi
 fi
 
 if [[ -s DJcounts/${sample}_DJ_count.txt ]]; then

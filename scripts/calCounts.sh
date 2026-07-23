@@ -1,6 +1,6 @@
 #!/bin/bash
-# if module could be used, load the required modules
-if command -v module &> /dev/null; then
+# Check samtools is available, load module if not in $PATH
+if ! command -v samtools &> /dev/null && command -v module &> /dev/null; then
     ml samtools
 fi
 

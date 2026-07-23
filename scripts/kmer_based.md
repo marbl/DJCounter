@@ -25,14 +25,17 @@ Number of 31-mers that are:
 ```
 
 ## Fast start
-Run `kmer_based_dj_counting.sh`
+Run `kmer_based_dj_counting.sh` or `djcounter-kmer` under bin/.
+
 ```sh
 ./kmer_based_dj_counting.sh
-Usage: kmer_based_dj_counting.sh <sample_name> <input.bam|input.cram|input.fq.gz>
+Usage: kmer_based_dj_counting.sh -sample <sample_name> -input <input.bam|input.cram|input.fq.gz> -tmp <tmp_dir>
   sample_name: Sample identifier
   input.bam|input.cram|input.fq.gz: Input sequencing reads in BAM or FASTQ format (gz or not).
   For paired-end reads, provide files as a comma separated list e.g. "input1.fq.gz,input2.fq.gz"
+  tmp_dir: Temporary directory for intermediate files. DEFAULT: /lscratch/$SLURM_JOB_ID or /tmp
 ```
+
 ## Plot results
 Here is a simple script to gather results and plot the distribution.
 ```sh

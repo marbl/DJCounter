@@ -33,4 +33,4 @@ fi
 sample=$(sed -n "${i}p" $map | awk '{print $1}')
 input=$( sed -n "${i}p" $map | awk '{print $2}')
 
-$tools/DJCounter/scripts/kmer_based_dj_counting.sh $sample $input
+$tools/DJCounter/scripts/kmer_based_dj_counting.sh -sample $sample -input $input
