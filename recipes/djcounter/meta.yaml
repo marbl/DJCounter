@@ -9,7 +9,7 @@ source:
   # For the bioconda PR, point at the released tarball and fill in the sha256:
   #   curl -sL https://github.com/marbl/DJCounter/archive/refs/tags/v{{ version }}.tar.gz | shasum -a 256
   url: https://github.com/marbl/DJCounter/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 0000000000000000000000000000000000000000000000000000000000000000  # TODO: fill in at release time
+  sha256: 6cde1b453d855f7d25854779bca1d814bb6569b969c53a0c26bfb673b06148ec
 
 build:
   number: 0
