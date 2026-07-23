@@ -181,7 +181,7 @@ DJ_count = (2 × tgMult) / bgMult
 | Build       | Required sequences | Notes |
 | ----------- | ------------------ | ----- |
 | **GRCh38 / hg38** | `chr21`, `chrUn_GL000220v1`, `chr17_GL000205v2_random`, `chr22_KI270733v1_random`, `chrUn_GL000195v1` | [Broad ver.](https://github.com/broadinstitute/gatk/tree/master/src/test/resources/large/) (UK Biobank) or [1KGP NYGC ver.](ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/GRCh38_full_analysis_set_plus_decoy_hla.fa) |
-| **T2T-CHM13 / hs1** | `chr13`, `chr14`, `chr15`, `chr21`, `chr22` | |
+| **T2T-CHM13 / hs1** | `chr13`, `chr14`, `chr15`, `chr21`, `chr22` | [Masked T2T-CHM13](https://s3-us-west-2.amazonaws.com/human-pangenomics/index.html?prefix=T2T/CHM13/assemblies/analysis_set/masked_DJ_rDNA_PHR_5S_wi_rCRS/), using all-but-one target masked, sample-matched [XX (chrY masked)](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/masked_DJ_rDNA_PHR_5S_wi_rCRS/chm13v2.0_masked_DJ_5S_rDNA_PHR_noY_wi_rCRS.fa) or [XY (PAR masked)](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/masked_DJ_rDNA_PHR_5S_wi_rCRS/chm13v2.0_masked_DJ_5S_rDNA_PHR_PAR_wi_rCRS.fa) sex chromosome compliment |
 
 Verify your BAM contains the required contigs:
 
