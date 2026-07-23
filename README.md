@@ -30,10 +30,12 @@ DJCounter is a shell/data pipeline that wraps external bioinformatics tools. Any
 
 ```bash
 git clone https://github.com/marbl/DJCounter && cd DJCounter
-mamba env create -f environment.yml         # or: conda env create -f environment.yml
+mamba env create -f environment.yml      # or: conda env create -f environment.yml
 conda activate djcounter
 # unpack the bundled DJ k-mer database once
 tar -xzf resources/DJtarget.meryl.tar.gz -C resources
+# put the wrappers on $PATH (matches the bioconda install)
+export PATH="$PWD/bin:$PATH"
 ```
 
 2. When a bioconda version becomes available
@@ -41,8 +43,6 @@ tar -xzf resources/DJtarget.meryl.tar.gz -C resources
 ```bash
 mamba install -c bioconda -c conda-forge djcounter
 ```
-Wrappers `djcounter-map` and `djcounter-kmer` will land on `$PATH`.
-
 
 ### Docker / Singularity (via BioContainers)
 
@@ -65,9 +65,10 @@ Assuming the rest of the [Dependencies](#dependencies) below are available, down
 
 ```bash
 # DJCounter - nothing to install
-git clone https://github.com/marbl/DJCounter
-cd DJCounter/resources && tar -xzf DJtarget.meryl.tar.gz # for k-mer counting DJs
-cd ../../
+git clone https://github.com/marbl/DJCounter && cd DJCounter
+tar -xzf resources/DJtarget.meryl.tar.gz -C resources # for k-mer counting DJs
+export PATH="$PWD/bin:$PATH"
+cd ../
 
 # Merqury - nothing to install
 git clone https://github.com/marbl/merqury
@@ -82,41 +83,64 @@ export PATH=$PWD/meryl-1.4.2/bin:$PATH
 
 ## Quick start
 
+Here we are testing with a sub-sampled 5x HG002 bam file.
+
+Note the results are slightly less accurate due to its low coverage.
+
+### 0. Download a test bam
+
+Download the following files:
+```
+https://s3-us-west-2.amazonaws.com/human-pangenomics/publications/DJCounter_2026/test/hg002_5x.bam
+https://s3-us-west-2.amazonaws.com/human-pangenomics/publications/DJCounter_2026/test/hg002_5x.bam.bai
+```
+
 ### 1. Mapping-based
 
 Suitable when your BAM/CRAM is aligned to one of the supported references (see [References](#supported-references)).
 
 ```bash
-scripts/calCounts.sh \
-    --sample  Sample01 \
-    --bam     /path/to/sample.bam \
+djcounter-map \
+    --sample  hg002_5x_map \
+    --bam     hg002_5x.bam \
     --ref     GRCh38 \
     --threads 10
 ```
 
-Output: `$outdir/$sample.$ref.tg.<filter>.<gap>.txt`
+Output: `hg002_5x_map.GRCh38.filter_3332.incGap.fast-accurate.byWGS.readCount.tg.txt`
 
 ```
-sample      ref     roi      DJ_count
-Sample01    GRCh38  DJ_filt  11.01608
+sample           ref      roi  tgCount   bgCov  DJ_count
+hg002_5x_map  GRCh38  DJ_filt    61321  .03237  10.94933
 ```
+* ref: reference
+* roi: region of interest, bed file used for collecting coverage under [roi](roi)
+* tgCount: target read count
+* bgCov: background coverage
+* DJ_count: estimated DJ counts
 
 📘 Details: [scripts/mapping_based.md](scripts/mapping_based.md)
 
 ### 2. K-mer based (reference-free)
 
-```bash
-# 1. Prepare the DJ target k-mer database (one-time)
-cd resources
-tar -xzf DJtarget.meryl.tar.gz
+Suitable for BAM/CRAMs mapped to a non-supported reference or raw FASTQ files.
 
-# 2. Run on a sample
-scripts/kmer_based_dj_counting.sh Sample01 /path/to/reads.fq.gz
-# or paired-end:
-scripts/kmer_based_dj_counting.sh Sample01 reads_1.fq.gz,reads_2.fq.gz
-# or BAM/CRAM:
-scripts/kmer_based_dj_counting.sh Sample01 sample.bam
+```bash
+djcounter-kmer -sample hg002_5x_kmer -input hg002_5x.bam -tmp .
+
+# also works with fq.gz files, i.e.:
+djcounter-kmer -sample hg002_5x_kmer -input hg002_5x.R1.fq.gz,hg002_5x.R2.fq.gz -tmp .
 ```
+
+Output: DJcounts/hg002_5x_kmer_DJ_count.txt
+
+```
+sample          tgMult  bgMult  DJ_count
+hg002_5x_kmer       22       4        11
+```
+* tgMult: target k-mer multiplicity, median multiplicity of the target DJ k-mers
+* bgMult: background k-mer multiplicity, estimated for 2-copy peak
+* DJ_count: estimated DJ counts
 
 Plot the distribution across many samples:
 
@@ -164,9 +188,10 @@ samtools view -H sample.bam | grep chr17_GL000205v2_random
 
 ```
 DJCounter/
+├── bin/             # Thin wrappers (djcounter-kmer, djcounter-map)
 ├── scripts/         # Pipeline scripts and per-mode docs
-│   ├── calCounts.sh
-│   ├── kmer_based_dj_counting.sh
+│   ├── calCounts.sh                 # mapping based
+│   ├── kmer_based_dj_counting.sh    # kmer based
 │   ├── mapping_based.md
 │   └── kmer_based.md
 ├── resources/       # Pre-built DJ k-mer database & references
@@ -199,3 +224,9 @@ DJCounter/
 | v0.2.1  | 2024-07-29 | Output background and fragment size; fixed background command |
 | v0.2    | 2024-07-25 | `samtools idxstats` → `samtools coverage` for background; removed temp files |
 | v0.1    | 2024-07-17 | First commit |
+
+## Citation
+
+Please use this [paper](https://doi.org/10.64898/2026.03.08.710242) to cite DJCounter:
+
+Rhie, A., Kim, J., Rodriguez-Algarra, F. et al. Biobank-scale genotyping of Robertsonian translocations reveals hidden structural variation on the human acrocentric chromosomes. bioRxiv (2026). https://doi.org/10.64898/2026.03.08.710242
